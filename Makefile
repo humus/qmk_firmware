@@ -517,3 +517,4 @@ $(shell echo '#define QMK_VERSION "$(GIT_VERSION)"' > $(ROOT_DIR)/quantum/versio
 $(shell echo '#define QMK_BUILDDATE "$(BUILD_DATE)"' >> $(ROOT_DIR)/quantum/version.h)
 
 include $(ROOT_DIR)/testlist.mk
+TAP_DANCE_ENABLE=yes
