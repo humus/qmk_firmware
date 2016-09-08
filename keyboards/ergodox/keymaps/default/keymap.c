@@ -2,10 +2,31 @@
 #include "debug.h"
 #include "action_layer.h"
 #include "version.h"
+#include "mousekey.h"
 
 #define BASE 0 // default layer
 #define SYMB 1 // symbols
 #define MDIA 2 // media keys
+
+//Tap Dance Definitions
+enum {
+	TD_MIN_EQ = 0
+};
+
+qk_tap_dance_action_t tap_dance_actions[] = {
+	[TD_MIN_EQ] = ACTION_TAP_DANCE_DOUBLE(KC_MINS, KC_EQL)
+};
+
+/* Macros */
+enum {
+  MVERSION = 0,
+  // Diagonal Mouse
+  A_MUL,
+  A_MUR,
+  A_MDL,
+  A_MDR
+};
+
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 /* Keymap 0: Basic layer
@@ -19,7 +40,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * |--------+------+------+------+------+------| Hyper|           | Meh  |------+------+------+------+------+--------|
  * | LShift |Z/Ctrl|   X  |   C  |   V  |   B  |      |           |      |   N  |   M  |   ,  |   .  |//Ctrl| RShift |
  * `--------+------+------+------+------+-------------'           `-------------+------+------+------+------+--------'
- *   |Grv/L1|  '"  |AltShf| Left | Right|                                       | RAlt | RCtrl|   \  |   ]  | ~L1  |
+ *   |Grv/L1|  '"  |AltShf| Left | LAlt |                                       | RAlt | RCtrl|   \  |   ]  | ~L1  |
  *   `----------------------------------'                                       `----------------------------------'
  *                                        ,-------------.       ,-------------.
  *                                        | App  | LGui |       | Alt  |Ctrl/Esc|
@@ -37,7 +58,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_TAB,           KC_Q,           KC_W,   KC_E,   KC_R,   KC_T,   TG(SYMB),
   CTL_T(KC_ESC),          KC_A,           KC_S,   KC_D,   KC_F,   KC_G,
         KC_LSFT,          CTL_T(KC_Z),    KC_X,   KC_C,   KC_V,   KC_B,   ALL_T(KC_NO),
-        KC_EQL,KC_QUOT,   LALT(KC_LSFT),  KC_LEFT,KC_RGHT,
+        KC_EQL,KC_QUOT,   LALT(KC_LSFT),  KC_LEFT,KC_LALT,
                                               ALT_T(KC_APP),  KC_LGUI,
                                                               KC_HOME,
                                                KC_ENT,KC_BSPC,KC_END,
@@ -75,11 +96,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 // SYMBOLS
 [SYMB] = KEYMAP(
        // left hand
-       M(0),   KC_F1,  KC_F2,  KC_F3,  KC_F4,  KC_F5,  KC_TRNS,
+       KC_TRNS,KC_F1,  KC_F2,  KC_F3,  KC_F4,  KC_F5,  M(0),
        KC_TRNS,KC_EXLM,KC_AT,  KC_LCBR,KC_RCBR,KC_PIPE,KC_TRNS,
        KC_TRNS,KC_HASH,KC_DLR, KC_LPRN,KC_RPRN,KC_GRV,
        KC_TRNS,KC_PERC,KC_CIRC,KC_LBRC,KC_RBRC,KC_TILD,KC_TRNS,
-       KC_TRNS,KC_TRNS,KC_TRNS,KC_TRNS,KC_TRNS,
+         RESET,KC_TRNS,KC_TRNS,KC_TRNS,KC_TRNS,
                                        KC_TRNS,KC_TRNS,
                                                KC_TRNS,
                                KC_TRNS,KC_TRNS,KC_TRNS,
@@ -117,9 +138,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 // MEDIA AND MOUSE
 [MDIA] = KEYMAP(
        KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,
-       KC_TRNS, KC_TRNS, KC_TRNS, KC_MS_U, KC_TRNS, KC_TRNS, KC_TRNS,
-       KC_TRNS, KC_TRNS, KC_MS_L, KC_MS_D, KC_MS_R, KC_TRNS,
-       KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,
+       KC_TRNS, KC_TRNS,M(A_MUL), KC_MS_U,M(A_MUR), KC_TRNS, KC_TRNS,
+       KC_TRNS, KC_TRNS, KC_MS_L, KC_TRNS, KC_MS_R, KC_TRNS,
+       KC_TRNS, KC_TRNS, M(A_MDL),KC_MS_D,M(A_MDR), KC_TRNS, KC_TRNS,
        KC_TRNS, KC_TRNS, KC_TRNS, KC_BTN1, KC_BTN2,
                                            KC_TRNS, KC_TRNS,
                                                     KC_TRNS,
@@ -133,11 +154,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
        KC_TRNS, KC_TRNS,
        KC_TRNS,
        KC_TRNS, KC_TRNS, KC_WBAK
-),
+)
 };
 
 const uint16_t PROGMEM fn_actions[] = {
-    [1] = ACTION_LAYER_TAP_TOGGLE(SYMB)                // FN1 - Momentary Layer 1 (Symbols)
+    [1] = ACTION_LAYER_MOMENTARY(SYMB)                // FN1 - Momentary Layer 1 (Symbols)
 };
 
 const macro_t *action_get_macro(keyrecord_t *record, uint8_t id, uint8_t opt)
@@ -148,6 +169,42 @@ const macro_t *action_get_macro(keyrecord_t *record, uint8_t id, uint8_t opt)
         if (record->event.pressed) {
           SEND_STRING (QMK_KEYBOARD "/" QMK_KEYMAP " @ " QMK_VERSION);
         }
+        break;
+        case A_MUR:
+          if (record->event.pressed) {
+            mousekey_on(KC_MS_UP);
+            mousekey_on(KC_MS_RIGHT);
+          } else {
+            mousekey_off(KC_MS_UP);
+            mousekey_off(KC_MS_RIGHT);
+          }
+        break;
+        case A_MUL:
+          if (record->event.pressed) {
+            mousekey_on(KC_MS_UP);
+            mousekey_on(KC_MS_LEFT);
+          } else {
+            mousekey_off(KC_MS_UP);
+            mousekey_off(KC_MS_LEFT);
+          }
+        break;
+        case A_MDL:
+          if (record->event.pressed) {
+            mousekey_on(KC_MS_DOWN);
+            mousekey_on(KC_MS_LEFT);
+          } else {
+            mousekey_off(KC_MS_DOWN);
+            mousekey_off(KC_MS_LEFT);
+          }
+        break;
+        case A_MDR:
+          if (record->event.pressed) {
+            mousekey_on(KC_MS_DOWN);
+            mousekey_on(KC_MS_RIGHT);
+          } else {
+            mousekey_off(KC_MS_DOWN);
+            mousekey_off(KC_MS_RIGHT);
+          }
         break;
       }
     return MACRO_NONE;
@@ -182,11 +239,3 @@ void matrix_scan_user(void) {
 
 };
 
-//Tap Dance Definitions
-enum {
-	TD_MIN_EQ = 0
-};
-
-qk_tap_dance_action_t tap_dance_actions[] = {
-	[TD_MIN_EQ] = ACTION_TAP_DANCE_DOUBLE(KC_MIN, KC_EQ)
-};
